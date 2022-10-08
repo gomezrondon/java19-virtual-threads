@@ -38,13 +38,11 @@ public class Demo19Application implements CommandLineRunner {
 					throw new RuntimeException(e);
 				}*/
 
+				int count = atomicInteger.incrementAndGet();
+				//	synchronized (atomicInteger){ // this is pinning :(
+				printResource(count);
+				//	}
 
-//				synchronized (atomicInteger){ // this is pinning :(
-				printResource(atomicInteger);
-//				}
-
-
-				atomicInteger.incrementAndGet();
 			});
 			lista.add(thread);
 		}
@@ -62,13 +60,12 @@ public class Demo19Application implements CommandLineRunner {
 		System.out.println("Execution time ms : "+Duration.between(start, end).toMillis());
 	}
 
-	private static void printResource(AtomicInteger atomicInteger) {
+	private static void printResource(int count) {
 		//lock guarantees sequential access without pinning :)
 		LOCK.lock();
 		try{
-			int value = atomicInteger.get();
-			if (value % 1_00_000 == 0) {
-				System.out.println("adding..  "+ value);
+			if (count % 1_00_000 == 0) {
+				System.out.println("adding..  "+ count);
 			}
 		}finally {
 			LOCK.unlock();
