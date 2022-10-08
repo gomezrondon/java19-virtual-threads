@@ -3,6 +3,9 @@ package com.example.demo19;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,16 +26,25 @@ public class Demo19Application implements CommandLineRunner {
 		int max = 5;
 		int min = 1;
 		AtomicInteger atomicInteger = new AtomicInteger();
-
+		Instant start = Instant.now();
 		for (int i = 0; i < 1_000_000; i++) {
 
 			Thread thread = Thread.ofVirtual().start(() -> {
-				int randNum = random.nextInt(max - min + 1) + min;
+/*				int randNum = random.nextInt(max - min + 1) + min;
 				try {
 					Thread.sleep(randNum * 1000);
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e);
+				}*/
+
+
+				synchronized (atomicInteger){
+					int value = atomicInteger.get();
+					if (value % 1_00_000 == 0) {
+						System.out.println("adding..  "+ value);
+					}
 				}
+
 
 				atomicInteger.incrementAndGet();
 			});
@@ -46,7 +58,9 @@ public class Demo19Application implements CommandLineRunner {
 				throw new RuntimeException(e);
 			}
 		});
+		Instant end = Instant.now();
 		System.out.println("total: "+atomicInteger.get());
 		System.out.println("testing...");
+		System.out.println("Execution time ms : "+Duration.between(start, end).toMillis());
 	}
 }
