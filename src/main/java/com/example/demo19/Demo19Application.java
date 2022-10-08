@@ -9,10 +9,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 @SpringBootApplication
 public class Demo19Application implements CommandLineRunner {
-
+	private static final ReentrantLock LOCK = new ReentrantLock();
 	public static void main(String[] args) {
 		SpringApplication.run(Demo19Application.class, args);
 	}
@@ -38,12 +39,9 @@ public class Demo19Application implements CommandLineRunner {
 				}*/
 
 
-				synchronized (atomicInteger){
-					int value = atomicInteger.get();
-					if (value % 1_00_000 == 0) {
-						System.out.println("adding..  "+ value);
-					}
-				}
+//				synchronized (atomicInteger){ // this is pinning :(
+				printResource(atomicInteger);
+//				}
 
 
 				atomicInteger.incrementAndGet();
@@ -63,4 +61,20 @@ public class Demo19Application implements CommandLineRunner {
 		System.out.println("testing...");
 		System.out.println("Execution time ms : "+Duration.between(start, end).toMillis());
 	}
-}
+
+	private static void printResource(AtomicInteger atomicInteger) {
+		//lock guarantees sequential access without pinning :)
+		LOCK.lock();
+		try{
+			int value = atomicInteger.get();
+			if (value % 1_00_000 == 0) {
+				System.out.println("adding..  "+ value);
+			}
+		}finally {
+			LOCK.unlock();
+		}
+
+	}
+
+
+}//end of class
